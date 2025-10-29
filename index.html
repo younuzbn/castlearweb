@@ -2,12 +2,38 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      a-scene {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+      }
+      a-video {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        will-change: transform;
+      }
+    </style>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         const scene = document.querySelector('a-scene');
         const videoEl = document.querySelector('#benzVideo');
+        const videoEntity = document.querySelector('a-video');
+        
+        // Preload and optimize video
+        if (videoEl) {
+          videoEl.preload = 'auto';
+          videoEl.setAttribute('webkit-playsinline', 'true');
+          videoEl.setAttribute('playsinline', 'true');
+        }
         
         scene.addEventListener('arReady', () => {
           if (videoEl) {
@@ -26,11 +52,21 @@
             videoEl.pause();
           }
         });
+        
+        // Stabilize video entity rendering
+        if (videoEntity) {
+          scene.addEventListener('loaded', () => {
+            const videoObject3D = videoEntity.object3D;
+            if (videoObject3D) {
+              videoObject3D.matrixAutoUpdate = true;
+            }
+          });
+        }
       });
     </script>
   </head>
   <body>
-    <a-scene mindar-image="imageTargetSrc: https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+    <a-scene mindar-image="imageTargetSrc: https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.mind; smooth: true; smoothCount: 10; smoothTolerance: 0.01; smoothThreshold: 5;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights: false, antialias: true, sortObjects: true" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       <a-assets>
 	<img id="card" src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.png" />
 	<video id="benzVideo" autoplay loop muted playsinline src="https://raw.githubusercontent.com/younuzbn/ar/main/Benz.mp4"></video>
@@ -40,7 +76,7 @@
 
       <a-entity mindar-image-target="targetIndex: 0">
         <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
-        <a-video src="#benzVideo" position="0 0 0.01" width="1" height="0.552" rotation="0 0 0"></a-video>
+        <a-video src="#benzVideo" position="0 0 0.01" width="1" height="0.552" rotation="0 0 0" material="shader: flat; side: double"></a-video>
       </a-entity>
     </a-scene>
   </body>
